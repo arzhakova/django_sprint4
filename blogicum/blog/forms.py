@@ -6,19 +6,16 @@ from .models import Comment, Post, User
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = ('first_name', 'last_name', 'username', 'email')
 
 
 class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        exclude = ('id',
-                   'author',
-                   'is_published'
-                   )
+        exclude = ('author',)
         widgets = {
-            'pub_date': forms.DateInput(attrs={'type': 'date'})
+            'pub_date': forms.DateTimeInput(attrs={'type': 'datetime-local'})
         }
 
 
