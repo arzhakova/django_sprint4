@@ -5,7 +5,8 @@ from django.utils import timezone
 
 from .forms import CommentForm, PostForm, UserForm
 from .models import Category, Comment, Post, User
-from .tools import get_page_obj, get_post_queryset
+from .query_utils import get_post_queryset
+from .pagination import get_page_obj
 
 
 def index(request):
@@ -36,7 +37,7 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True
     )
-    post_list = get_post_queryset(True, True).filter(category=category)
+    post_list = get_post_queryset(True, True, category.posts)
     page_obj = get_page_obj(request, post_list)
     context = {'category': category,
                'page_obj': page_obj}
@@ -48,8 +49,8 @@ def profile(request, username):
         User,
         username=username
     )
-    flag1 = False if request.user == profile else True
-    post_list = get_post_queryset(flag1, True).filter(author=profile)
+    need_filters = request.user != profile
+    post_list = get_post_queryset(need_filters, True, profile.posts)
     page_obj = get_page_obj(request, post_list)
     context = {'profile': profile,
                'page_obj': page_obj}
@@ -92,7 +93,7 @@ def edit_delete_post(request, post_id):
     if form.is_valid():
         form.save()
         return redirect('blog:post_detail', post_id=post_id)
-    if request.method == 'POST':
+    elif request.method == 'POST':
         instance.delete()
         return redirect('blog:profile', username=request.user)
     return render(request, 'blog/create.html', context)
